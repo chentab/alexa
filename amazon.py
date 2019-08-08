@@ -1,15 +1,12 @@
-import json
-
 from botocore.vendored import requests
 import json
 def lambda_handler(event, context):
-    print(event)
     if event['session']['new']:
         on_start()
-    if event['request']['type'] == "LaunchRequest":
-        return on_launch(event)
-    elif event['request']['type'] == "intentRequest":
+    if event['request']['type'] == "intentRequest":
         return intent_scheme(event)
+    elif event['request']['type'] == "LaunchRequest":
+        return on_launch(event)
     elif event['request']['type'] == "SessionEndedRequest":
         return on_end()
 
@@ -17,8 +14,7 @@ def lambda_handler(event, context):
 def on_start():
     print("Session Started.")
 def on_launch(event):
-    onlunch_MSG = "Hi, welcome to the Carb Calculator. Provide any ingredient and I will respond with the number of carbs for the given portion"
-    "and its daily value"
+    onlunch_MSG = "Hi, welcome to the Carb Calculator. Provide any ingredient and I will respond with the number of carbs for the given portion and its daily value"
     reprompt_MSG = "please provide an ingredient"
     card_TEXT = "Provide an ingredient."
     card_TITLE = "Provide an ingredient."
