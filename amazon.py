@@ -1,11 +1,14 @@
-import requests
+import json
+
+from botocore.vendored import requests
 import json
 def lambda_handler(event, context):
+    print(event)
     if event['session']['new']:
         on_start()
     if event['request']['type'] == "LaunchRequest":
         return on_launch(event)
-    elif event['request']['type'] == "IntentRequest":
+    elif event['request']['type'] == "intentRequest":
         return intent_scheme(event)
     elif event['request']['type'] == "SessionEndedRequest":
         return on_end()
@@ -33,12 +36,14 @@ def intent_scheme(event):
         return assistance(event)
     elif intent_name == "AMAZON.FallbackIntent":
         return fallback_call(event)
+    elif intent_name == "LaunchRequest":
+        return on_launch(event)
 def on_end():
     print("Session Ended.")
 
 
 def GetCarbs (event):
-    ingredient = event['request']['intent']['slots']['player']['value']
+    ingredient = event['request']['intent']['slots']['ingredient']['value']
     ingredient.replace("","%20")
     url = 'https://api.edamam.com/api/food-database/parser?ingr=' + ingredient + '&app_id=6f9d25da&app_key=c5b5242ee6008a2c036a4d7bd60c9aee'
     response = requests.get(url)
@@ -114,5 +119,6 @@ def output_json_builder_with_reprompt_and_card(outputSpeach_text, card_text, car
     response_dict['response'] = response_field_builder_with_reprompt_and_card(outputSpeach_text, card_text, card_title,
                                                                               reprompt_text, value)
     return response_dict
+
 
 
