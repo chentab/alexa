@@ -1,0 +1,62 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "carbs calculator",
+            "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": [
+                        "turn off",
+                        "bye",
+                        "stop",
+                        "cancel"
+                    ]
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": [
+                        "help"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": [
+                        "bye",
+                        "stop",
+                        "cancel "
+                    ]
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "GetCarbsIntent",
+                    "slots": [
+                        {
+                            "name": "ingredient",
+                            "type": "AMAZON.Food"
+                        }
+                    ],
+                    "samples": [
+                        "ask carbs calculator for the number of carbs in {ingredient}",
+                        "{ingredient}",
+                        "number of carbs in {ingredient}",
+                        "give me the number of carbs in {ingredient}",
+                        "tell me how many carbs are in {ingredient} ",
+                        "how many carbs are in {ingredient}"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NoIntent",
+                    "samples": []
+                }
+            ],
+            "types": []
+        }
+    }
+}
