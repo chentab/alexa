@@ -1,6 +1,11 @@
 from botocore.vendored import requests
 
 
+
+
+
+
+
 def lambda_handler(event, context):
     if event['session']['new']:
         on_start()
@@ -16,11 +21,13 @@ def on_start():
     print("Session Started.")
 
 
+
 def on_launch(event):
     onlunch_MSG = (
-        "Hi, welcome to the Carb Calculator."
-        + "Provide any ingredient and I will respond with the number of carbs"
-        + "for the given portion and its daily value"
+        "Hi, welcome to Daily Value."
+        + " Provide any ingredient and a nutrition value, "
+        + "and I will respond with the amount of said value present in 100 grams of the ingridient, "
+        + "and it's daily value percentage"
     )
     reprompt_MSG = "please provide an ingredient"
     card_TEXT = "Provide an ingredient."
@@ -33,8 +40,8 @@ def on_launch(event):
 def intent_scheme(event):
     intent_name = event['request']['intent']['name']
 
-    if intent_name == "GetCarbsIntent":
-        return GetCarbs(event)
+    if intent_name == "GetValueIntent":
+        return GetValue(event)
     elif intent_name in [
         "AMAZON.NoIntent",
         "AMAZON.StopIntent",
@@ -53,42 +60,60 @@ def on_end():
     print("Session Ended.")
 
 
-def GetCarbs(event):
+def GetValue(event):
     ingredient = event['request']['intent']['slots']['ingredient']['value']
+    value = event['request']['intent']['slots']['nutrition']['value']
     ingredient.replace("", "%20")
     url = (
-        'https://api.edamam.com/api/food-database/parser?ingr='
+        'https://api.edamam.com/api/nutrition-data?app_id=f6be31fa&app_key=660e5eed08584478030c8b7ceed10b36&ingr=100%20gram%20'
         + ingredient
-        + '&app_id=6f9d25da&app_key=c5b5242ee6008a2c036a4d7bd60c9aee'
     )
     response = requests.get(url)
-    if response.json()["parsed"] == []:
-        InvalidInfo_MSG = "You have provided an invalid ingredient"
-        reprompt_MSG = "please provide an ingredient"
-        card_TEXT = "repeat your request"
-        card_TITLE = "invalid ingredient"
-        return output_json_builder_with_reprompt_and_card(
-            InvalidInfo_MSG, card_TEXT, card_TITLE, reprompt_MSG, False
+    print(response.json())
+    if value == 'calories':
+        key = int(response.json()['totalNutrients']['ENERC_KCAL']['quantity'])
+        dailyValue = int(response.json()['totalDaily']['ENERC_KCAL']['quantity'])
+        value = "".join(
+            [
+                "the number of calories in ",
+                ingredient,
+                " is ",
+                str(key),
+                " calories, which is ",
+                str(dailyValue),
+                "% of the recommended daily value."
+            ]
         )
-    key = response.json()["parsed"][0]["food"]["nutrients"]["CHOCDF"]
-    DVpercent = int((key/300)*100)
-    Carbs = "".join(
-        [
-            "the number of carbs in ",
-            ingredient,
-            " is ",
-            str(key),
-            " which is ",
-            str(DVpercent),
-            "% of the recommended daily value."
-        ]
-    )
-    reprompt_MSG = "please provide an ingredient"
-    card_TEXT = "processing " + ingredient
-    card_TITLE = "processing " + ingredient
-    return output_json_builder_with_reprompt_and_card(
-        Carbs, card_TEXT, card_TITLE, reprompt_MSG, False
-    )
+        reprompt_MSG = "please provide an ingredient"
+        card_TEXT = "processing " + ingredient
+        card_TITLE = "processing " + ingredient
+        return output_json_builder_with_reprompt_and_card(
+            value, card_TEXT, card_TITLE, reprompt_MSG, True)
+    else:
+        for v in response.json()['totalNutrients']:
+            if (response.json()['totalNutrients'][v]['label']).lower() == value:
+                key = response.json()['totalNutrients'][v]['quantity']
+                dailyValue = int(response.json()['totalDaily'][v]['quantity'])
+                if response.json()['totalNutrients'][v]['unit'] == 'mg':
+                    unit = 'miligrams'
+                else:
+                    unit = 'grams'
+                value = "".join(
+                    [
+                        "the amount of " + value +  " in ",
+                        ingredient,
+                        " is ",
+                        str(key),
+                        " " + unit + ", which is ",
+                        str(dailyValue),
+                        "% of the recommended daily value."
+                    ]
+                )
+                reprompt_MSG = "please provide an ingredient"
+                card_TEXT = "processing " + ingredient
+                card_TITLE = "processing " + ingredient
+                return output_json_builder_with_reprompt_and_card(
+                    value, card_TEXT, card_TITLE, reprompt_MSG, True)
 
 
 def stop_the_skill(event):
@@ -104,7 +129,7 @@ def stop_the_skill(event):
 def assistance(event):
     assistance_MSG = (
         "you need to provide an ingredient in order"
-        + " to receive it's carbs value."
+        + " to receive it's daily value."
     )
     reprompt_MSG = "please provide an ingredient"
     card_TEXT = "You've asked for help."
